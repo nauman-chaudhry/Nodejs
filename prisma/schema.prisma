@@ -1,0 +1,586 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model add_ons {
+  add_on_id          Int                  @id @default(autoincrement())
+  name               String?              @db.VarChar(255)
+  description        String?
+  price              Decimal?             @db.Decimal(10, 2)
+  available_quantity Int?
+  created_at         DateTime?            @default(now()) @db.Timestamp(6)
+  event_add_ons      event_add_ons[]
+  order_add_ons      order_add_ons[]
+  promo_code_tickets promo_code_tickets[]
+}
+
+model admin_logs {
+  log_id      Int       @id @default(autoincrement())
+  admin_id    Int?
+  action      String?   @db.VarChar(255)
+  entity_type String?   @db.VarChar(255)
+  entity_id   Int?
+  timestamp   DateTime? @default(now()) @db.Timestamp(6)
+  users       users?    @relation(fields: [admin_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model agendas {
+  agenda_id   Int       @id @default(autoincrement())
+  event_id    Int?
+  title       String?   @db.VarChar(255)
+  description String?
+  start_time  DateTime? @db.Timestamp(6)
+  end_time    DateTime? @db.Timestamp(6)
+  location    String?   @db.VarChar(255)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  events      events?   @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model attendees {
+  attendee_id     Int            @id @default(autoincrement())
+  user_id         Int?
+  event_id        Int?
+  ticket_id       Int?
+  check_in_status Boolean?       @default(false)
+  check_in_time   DateTime?      @db.Timestamp(6)
+  created_at      DateTime?      @default(now()) @db.Timestamp(6)
+  events          events?        @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  tickets         tickets?       @relation(fields: [ticket_id], references: [ticket_id], onDelete: NoAction, onUpdate: NoAction)
+  users           users?         @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  ticket_scans    ticket_scans[]
+}
+
+model audit_logs {
+  audit_id    Int       @id @default(autoincrement())
+  user_id     Int?
+  entity_type String?   @db.VarChar(255)
+  entity_id   Int?
+  action      String?   @db.VarChar(255)
+  old_value   String?
+  new_value   String?
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  users       users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model bank_accounts {
+  bank_id        Int         @id @default(autoincrement())
+  business_id    Int?
+  account_name   String?     @db.VarChar(255)
+  account_number String?     @db.VarChar(255)
+  bank_name      String?     @db.VarChar(255)
+  swift_code     String?     @db.VarChar(100)
+  currency       String?     @db.VarChar(50)
+  businesses     businesses? @relation(fields: [business_id], references: [business_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model businesses {
+  business_id     Int               @id @default(autoincrement())
+  user_id         Int?
+  business_name   String?           @db.VarChar(255)
+  description     String?
+  logo_url        String?           @db.VarChar(255)
+  website         String?           @db.VarChar(255)
+  address         String?
+  city            String?           @db.VarChar(255)
+  country         String?           @db.VarChar(255)
+  tax_id          String?           @db.VarChar(255)
+  created_at      DateTime?         @default(now()) @db.Timestamp(6)
+  bank_accounts   bank_accounts[]
+  users           users?            @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  email_campaigns email_campaigns[]
+  events          events[]
+  followers       followers[]
+  integrations    integrations[]
+  payouts         payouts[]
+  reports         reports[]
+  settings        settings[]
+  widgets         widgets[]
+}
+
+model categories {
+  category_id   Int      @id @default(autoincrement())
+  category_name String?  @db.VarChar(255)
+  description   String?
+  events        events[]
+}
+
+model comments {
+  comment_id        Int       @id @default(autoincrement())
+  user_id           Int?
+  event_id          Int?
+  parent_comment_id Int?
+  content           String?
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  events            events?   @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  users             users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model donations {
+  donation_id   Int       @id @default(autoincrement())
+  user_id       Int?
+  event_id      Int?
+  amount        Decimal?  @db.Decimal(10, 2)
+  payment_id    Int?
+  donation_date DateTime? @default(now()) @db.Timestamp(6)
+  events        events?   @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  payments      payments? @relation(fields: [payment_id], references: [payment_id], onDelete: NoAction, onUpdate: NoAction)
+  users         users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model email_campaigns {
+  campaign_id    Int         @id @default(autoincrement())
+  business_id    Int?
+  title          String?     @db.VarChar(255)
+  subject        String?     @db.VarChar(255)
+  body           String?
+  recipient_list String?
+  status         String?     @db.VarChar(100)
+  created_at     DateTime?   @default(now()) @db.Timestamp(6)
+  businesses     businesses? @relation(fields: [business_id], references: [business_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model event_add_ons {
+  event_add_on_id Int       @id @default(autoincrement())
+  event_id        Int?
+  add_on_id       Int?
+  status          String?   @db.VarChar(100)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  add_ons         add_ons?  @relation(fields: [add_on_id], references: [add_on_id], onDelete: NoAction, onUpdate: NoAction)
+  events          events?   @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model event_faqs {
+  event_faq_id Int       @id @default(autoincrement())
+  faq_id       Int?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  faqs         faqs?     @relation(fields: [faq_id], references: [faq_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model event_media {
+  media_id    Int       @id @default(autoincrement())
+  event_id    Int?
+  media_url   String?   @db.VarChar(255)
+  media_type  String?   @db.VarChar(50)
+  uploaded_at DateTime? @default(now()) @db.Timestamp(6)
+  events      events?   @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model event_schedule {
+  schedule_id  Int       @id @default(autoincrement())
+  event_id     Int?
+  title        String?   @db.VarChar(255)
+  description  String?
+  start_time   DateTime? @db.Timestamp(6)
+  end_time     DateTime? @db.Timestamp(6)
+  speaker_name String?   @db.VarChar(255)
+  location     String?   @db.VarChar(255)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  events       events?   @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model event_staff {
+  staff_id    Int       @id @default(autoincrement())
+  event_id    Int?
+  user_id     Int?
+  role        String?   @db.VarChar(255)
+  assigned_at DateTime? @default(now()) @db.Timestamp(6)
+  events      events?   @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  users       users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model event_views {
+  view_id    Int       @id @default(autoincrement())
+  event_id   Int?
+  user_id    Int?
+  viewed_at  DateTime? @default(now()) @db.Timestamp(6)
+  ip_address String?   @db.VarChar(100)
+  device     String?   @db.VarChar(100)
+  events     events?   @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model events {
+  event_id       Int              @id @default(autoincrement())
+  business_id    Int?
+  category_id    Int?
+  event_name     String?          @db.VarChar(255)
+  description    String?
+  venue          String?          @db.VarChar(255)
+  city           String?          @db.VarChar(255)
+  country        String?          @db.VarChar(255)
+  start_date     DateTime?        @db.Timestamp(6)
+  end_date       DateTime?        @db.Timestamp(6)
+  timezone       String?          @db.VarChar(100)
+  cover_image    String?          @db.VarChar(255)
+  status         String?          @db.VarChar(100)
+  created_at     DateTime?        @default(now()) @db.Timestamp(6)
+  agendas        agendas[]
+  attendees      attendees[]
+  comments       comments[]
+  donations      donations[]
+  event_add_ons  event_add_ons[]
+  event_media    event_media[]
+  event_schedule event_schedule[]
+  event_staff    event_staff[]
+  event_views    event_views[]
+  businesses     businesses?      @relation(fields: [business_id], references: [business_id], onDelete: NoAction, onUpdate: NoAction)
+  categories     categories?      @relation(fields: [category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction)
+  faqs           faqs[]
+  feedback       feedback[]
+  locations      locations[]
+  orders         orders[]
+  promo_codes    promo_codes[]
+  sponsors       sponsors[]
+  ticket_scans   ticket_scans[]
+  tickets        tickets[]
+  widgets        widgets[]
+}
+
+model faqs {
+  faq_id     Int          @id @default(autoincrement())
+  event_id   Int?
+  question   String?
+  answer     String?
+  created_at DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at DateTime?    @default(now()) @db.Timestamp(6)
+  event_faqs event_faqs[]
+  events     events?      @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model feedback {
+  feedback_id Int       @id @default(autoincrement())
+  user_id     Int?
+  event_id    Int?
+  rating      Int?
+  comment     String?
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  events      events?   @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  users       users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model followers {
+  follower_id Int         @id @default(autoincrement())
+  user_id     Int?
+  business_id Int?
+  created_at  DateTime?   @default(now()) @db.Timestamp(6)
+  businesses  businesses? @relation(fields: [business_id], references: [business_id], onDelete: NoAction, onUpdate: NoAction)
+  users       users?      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model integrations {
+  integration_id   Int         @id @default(autoincrement())
+  business_id      Int?
+  integration_name String?     @db.VarChar(255)
+  api_key          String?     @db.VarChar(255)
+  status           String?     @db.VarChar(100)
+  created_at       DateTime?   @default(now()) @db.Timestamp(6)
+  businesses       businesses? @relation(fields: [business_id], references: [business_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model invoices {
+  invoice_id     Int       @id @default(autoincrement())
+  order_id       Int?
+  invoice_number String?   @db.VarChar(255)
+  amount_due     Decimal?  @db.Decimal(10, 2)
+  amount_paid    Decimal?  @db.Decimal(10, 2)
+  issue_date     DateTime? @db.Timestamp(6)
+  due_date       DateTime? @db.Timestamp(6)
+  status         String?   @db.VarChar(100)
+  orders         orders?   @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model locations {
+  location_id   Int      @id @default(autoincrement())
+  event_id      Int?
+  address_line1 String?  @db.VarChar(255)
+  address_line2 String?  @db.VarChar(255)
+  city          String?  @db.VarChar(255)
+  state         String?  @db.VarChar(255)
+  postal_code   String?  @db.VarChar(50)
+  country       String?  @db.VarChar(255)
+  latitude      Decimal? @db.Decimal(10, 6)
+  longitude     Decimal? @db.Decimal(10, 6)
+  events        events?  @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model messages {
+  message_id                        Int       @id @default(autoincrement())
+  sender_id                         Int?
+  receiver_id                       Int?
+  subject                           String?   @db.VarChar(255)
+  body                              String?
+  status                            String?   @db.VarChar(100)
+  created_at                        DateTime? @default(now()) @db.Timestamp(6)
+  users_messages_receiver_idTousers users?    @relation("messages_receiver_idTousers", fields: [receiver_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  users_messages_sender_idTousers   users?    @relation("messages_sender_idTousers", fields: [sender_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model notifications {
+  notification_id Int       @id @default(autoincrement())
+  user_id         Int?
+  title           String?   @db.VarChar(255)
+  message         String?
+  type            String?   @db.VarChar(100)
+  is_read         Boolean?  @default(false)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  users           users?    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model order_add_ons {
+  order_add_on_id Int      @id @default(autoincrement())
+  order_id        Int?
+  add_on_id       Int?
+  quantity        Int?
+  unit_price      Decimal? @db.Decimal(10, 2)
+  subtotal        Decimal? @db.Decimal(10, 2)
+  add_ons         add_ons? @relation(fields: [add_on_id], references: [add_on_id], onDelete: NoAction, onUpdate: NoAction)
+  orders          orders?  @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model order_items {
+  order_item_id Int      @id @default(autoincrement())
+  order_id      Int?
+  ticket_id     Int?
+  quantity      Int?
+  unit_price    Decimal? @db.Decimal(10, 2)
+  subtotal      Decimal? @db.Decimal(10, 2)
+  orders        orders?  @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+  tickets       tickets? @relation(fields: [ticket_id], references: [ticket_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model orders {
+  order_id       Int             @id @default(autoincrement())
+  user_id        Int?
+  event_id       Int?
+  total_amount   Decimal?        @db.Decimal(10, 2)
+  payment_status String?         @db.VarChar(100)
+  payment_id     Int?
+  invoice_id     Int?
+  created_at     DateTime?       @default(now()) @db.Timestamp(6)
+  invoices       invoices[]
+  order_add_ons  order_add_ons[]
+  order_items    order_items[]
+  events         events?         @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  users          users?          @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  payments       payments[]
+  refunds        refunds[]
+}
+
+model payments {
+  payment_id      Int         @id @default(autoincrement())
+  order_id        Int?
+  payment_method  String?     @db.VarChar(100)
+  transaction_ref String?     @db.VarChar(255)
+  amount          Decimal?    @db.Decimal(10, 2)
+  status          String?     @db.VarChar(100)
+  payment_date    DateTime?   @default(now()) @db.Timestamp(6)
+  donations       donations[]
+  orders          orders?     @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+  refunds         refunds[]
+}
+
+model payouts {
+  payout_id    Int         @id @default(autoincrement())
+  business_id  Int?
+  amount       Decimal?    @db.Decimal(10, 2)
+  fee          Decimal?    @db.Decimal(10, 2)
+  transfer_ref String?     @db.VarChar(255)
+  status       String?     @db.VarChar(100)
+  payout_date  DateTime?   @db.Timestamp(6)
+  businesses   businesses? @relation(fields: [business_id], references: [business_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model permissions {
+  permission_id    Int                @id @default(autoincrement())
+  permission_name  String?            @db.VarChar(255)
+  description      String?
+  role_permissions role_permissions[] @ignore
+}
+
+model promo_code_tickets {
+  promo_ticket_id Int          @id @default(autoincrement())
+  promo_id        Int?
+  ticket_id       Int?
+  add_on_id       Int?
+  add_ons         add_ons?     @relation(fields: [add_on_id], references: [add_on_id], onDelete: NoAction, onUpdate: NoAction)
+  promo_codes     promo_codes? @relation(fields: [promo_id], references: [promo_id], onDelete: NoAction, onUpdate: NoAction)
+  tickets         tickets?     @relation(fields: [ticket_id], references: [ticket_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model promo_codes {
+  promo_id           Int                  @id @default(autoincrement())
+  event_id           Int?
+  code_name          String?              @db.VarChar(255)
+  description        String?
+  discount_type      String?              @db.VarChar(50)
+  discount_value     Decimal?             @db.Decimal(10, 2)
+  ticket_limit       Int?
+  usage_limit        Int?
+  used_count         Int?                 @default(0)
+  visibility         String?              @db.VarChar(50)
+  start_time         DateTime?            @db.Timestamp(6)
+  end_time           DateTime?            @db.Timestamp(6)
+  created_at         DateTime?            @default(now()) @db.Timestamp(6)
+  promo_code_tickets promo_code_tickets[]
+  events             events?              @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model refunds {
+  refund_id  Int       @id @default(autoincrement())
+  order_id   Int?
+  payment_id Int?
+  amount     Decimal?  @db.Decimal(10, 2)
+  reason     String?
+  status     String?   @db.VarChar(100)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  orders     orders?   @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+  payments   payments? @relation(fields: [payment_id], references: [payment_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model reports {
+  report_id    Int         @id @default(autoincrement())
+  business_id  Int?
+  report_type  String?     @db.VarChar(100)
+  generated_at DateTime?   @default(now()) @db.Timestamp(6)
+  data_json    Json?
+  businesses   businesses? @relation(fields: [business_id], references: [business_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model role_permissions {
+  role_id       Int?
+  permission_id Int?
+  permissions   permissions? @relation(fields: [permission_id], references: [permission_id], onDelete: NoAction, onUpdate: NoAction)
+  roles         roles?       @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@ignore
+}
+
+model roles {
+  role_id          Int                @id @default(autoincrement())
+  role_name        String?            @db.VarChar(255)
+  description      String?
+  role_permissions role_permissions[] @ignore
+  users            users[]
+}
+
+model settings {
+  setting_id  Int         @id @default(autoincrement())
+  scope       String?     @db.VarChar(100)
+  business_id Int?
+  key         String?     @db.VarChar(255)
+  value       String?
+  updated_at  DateTime?   @default(now()) @db.Timestamp(6)
+  businesses  businesses? @relation(fields: [business_id], references: [business_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model sponsors {
+  sponsor_id         Int       @id @default(autoincrement())
+  event_id           Int?
+  sponsor_name       String?   @db.VarChar(255)
+  logo_url           String?   @db.VarChar(255)
+  contact_email      String?   @db.VarChar(255)
+  sponsorship_amount Decimal?  @db.Decimal(10, 2)
+  sponsorship_type   String?   @db.VarChar(100)
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  events             events?   @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model support_responses {
+  response_id     Int              @id @default(autoincrement())
+  ticket_id       Int?
+  responder_id    Int?
+  message         String?
+  created_at      DateTime?        @default(now()) @db.Timestamp(6)
+  users           users?           @relation(fields: [responder_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  support_tickets support_tickets? @relation(fields: [ticket_id], references: [ticket_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model support_tickets {
+  ticket_id         Int                 @id @default(autoincrement())
+  user_id           Int?
+  subject           String?             @db.VarChar(255)
+  message           String?
+  status            String?             @db.VarChar(100)
+  priority          String?             @db.VarChar(100)
+  created_at        DateTime?           @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?           @default(now()) @db.Timestamp(6)
+  support_responses support_responses[]
+  users             users?              @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ticket_scans {
+  scan_id         Int        @id @default(autoincrement())
+  attendee_id     Int?
+  event_id        Int?
+  ticket_id       Int?
+  scanned_at      DateTime?  @default(now()) @db.Timestamp(6)
+  scanner_user_id Int?
+  attendees       attendees? @relation(fields: [attendee_id], references: [attendee_id], onDelete: NoAction, onUpdate: NoAction)
+  events          events?    @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+  tickets         tickets?   @relation(fields: [ticket_id], references: [ticket_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tickets {
+  ticket_id          Int                  @id @default(autoincrement())
+  event_id           Int?
+  ticket_name        String?              @db.VarChar(255)
+  ticket_type        String?              @db.VarChar(100)
+  price              Decimal?             @db.Decimal(10, 2)
+  quantity_available Int?
+  quantity_sold      Int?                 @default(0)
+  service_fee        Decimal?             @db.Decimal(10, 2)
+  donation_allowed   Boolean?             @default(false)
+  created_at         DateTime?            @default(now()) @db.Timestamp(6)
+  attendees          attendees[]
+  order_items        order_items[]
+  promo_code_tickets promo_code_tickets[]
+  ticket_scans       ticket_scans[]
+  events             events?              @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  user_id                              Int                 @id @default(autoincrement())
+  role_id                              Int?
+  first_name                           String?             @db.VarChar(255)
+  last_name                            String?             @db.VarChar(255)
+  email                                String              @unique @db.VarChar(255)
+  password_hash                        String?             @db.VarChar(255)
+  phone                                String?             @db.VarChar(50)
+  is_verified                          Boolean?            @default(false)
+  created_at                           DateTime?           @default(now()) @db.Timestamp(6)
+  updated_at                           DateTime?           @default(now()) @db.Timestamp(6)
+  admin_logs                           admin_logs[]
+  attendees                            attendees[]
+  audit_logs                           audit_logs[]
+  businesses                           businesses[]
+  comments                             comments[]
+  donations                            donations[]
+  event_staff                          event_staff[]
+  event_views                          event_views[]
+  feedback                             feedback[]
+  followers                            followers[]
+  messages_messages_receiver_idTousers messages[]          @relation("messages_receiver_idTousers")
+  messages_messages_sender_idTousers   messages[]          @relation("messages_sender_idTousers")
+  notifications                        notifications[]
+  orders                               orders[]
+  support_responses                    support_responses[]
+  support_tickets                      support_tickets[]
+  roles                                roles?              @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model widgets {
+  widget_id   Int         @id @default(autoincrement())
+  business_id Int?
+  event_id    Int?
+  widget_type String?     @db.VarChar(100)
+  embed_code  String?
+  created_at  DateTime?   @default(now()) @db.Timestamp(6)
+  businesses  businesses? @relation(fields: [business_id], references: [business_id], onDelete: NoAction, onUpdate: NoAction)
+  events      events?     @relation(fields: [event_id], references: [event_id], onDelete: NoAction, onUpdate: NoAction)
+}
