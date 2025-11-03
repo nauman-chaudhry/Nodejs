@@ -42,3 +42,16 @@ Express Server with Prisma (prismaServer.js)
 
 This is another version of the same API — but it uses Prisma, a modern database tool that makes queries easier to write and manage.
 It performs the same actions (POST, GET, PUT, DELETE) but through Prisma’s syntax instead of manual SQL.
+
+
+
+authController.js
+
+Handles all authentication logic such as Signup, OTP Verification, Login, Forgot Password, Reset Password, and Profile Update.
+It uses Prisma ORM to connect with the PostgreSQL database and also sends OTP emails using Nodemailer.
+All major actions like creating a user, verifying OTP, or updating a password are handled inside this file.
+
+prismaServer2.js
+
+It connects the backend routes (like /signup, /verify-otp, /signin, etc.) to the functions written in authController.js.
+It also starts the server and listens for API requests.
